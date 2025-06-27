@@ -110,7 +110,7 @@ public class FoodServiceImp implements FoodService {
         Optional<Food> OptionalFood = foodRepository.findById(foodId);
 
         if(OptionalFood.isEmpty()){
-            throw new Exception("FOOD NOT EXIST.........")
+            throw new Exception("FOOD NOT EXIST.........");
         }
         return OptionalFood.get();
     }
