@@ -43,4 +43,20 @@ public class Cart {
     public void setItems(List<CartItem> items) {
         this.items = items;
     }
+
+    public Long getId() {
+        return id;
+    }
+
+    public User getCustomer() {
+        return customer;
+    }
+
+    public Long getTotal() {
+        return total;
+    }
+
+    public List<CartItem> getItems() {
+        return items;
+    }
 }
