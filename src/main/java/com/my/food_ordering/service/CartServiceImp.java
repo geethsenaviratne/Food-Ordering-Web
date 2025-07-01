@@ -10,6 +10,8 @@ import com.my.food_ordering.request.AddCartItemRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 
 @Service
 public class CartServiceImp implements CartService{
@@ -31,7 +33,7 @@ public class CartServiceImp implements CartService{
         User user=userService.findUserByJwtToken(jwt);
         Food food = foodService.findFoodById(req.getFoodId());
 
-        Cart cart = cartItemRepository.findByCustomerId(user.getId());
+        Cart cart = cartRepository.findByCustomerId(user.getId());
 
         for (CartItem cartItem : cart.getItems()){
             if(cartItem.getFood().equals(food)){
@@ -39,39 +41,89 @@ public class CartServiceImp implements CartService{
                         return updateCartItemQuantity(cartItem.getId(), newQuantity);
             }
         }
-        return null;
+        CartItem newCartItem = new CartItem();
+        newCartItem.setFood(food);
+        newCartItem.setCart(cart);
+        newCartItem.setQuantity(req.getQuantity());
+        newCartItem.setIngredients(req.getIngredients());
+        newCartItem.setTotalPrice(req.getQuantity()*food.getPrice());
+
+        CartItem savedCartItem = cartItemRepository.save(newCartItem);
+
+        cart.getItems().add(savedCartItem);
+
+        return savedCartItem;
     }
 
 
     @Override
     public CartItem updateCartItemQuantity(Long cartItemId, int quantity) throws Exception {
-        return null;
+
+        Optional<CartItem> cartItemOptional = cartItemRepository.findById(cartItemId);
+        if(cartItemOptional.isEmpty()){
+            throw new Exception("CartItem not found");
+        }
+
+        CartItem item = cartItemOptional.get();
+        item.setQuantity(quantity);
+
+        //selected quantity is we think 5 and food price is 100 then total price is  5*100=5000
+        item.setTotalPrice(item.getFood().getPrice()*quantity);
+
+        return cartItemRepository.save(item);
     }
 
     @Override
     public Cart removeItemFromCart(Long cartItemId, String jwt) throws Exception {
-        return null;
+        User user=userService.findUserByJwtToken(jwt);
+
+        Cart cart = cartItemRepository.findByCustomerId(user.getId());
+
+        Optional<CartItem> cartItemOptional = cartItemRepository.findById(cartItemId);
+        if(cartItemOptional.isEmpty()){
+            throw new Exception("CartItem not found");
+        }
+
+        CartItem item = cartItemOptional.get();
+
+        cart.getItems().remove(item);
+
+        return cartRepository.save(cart);
     }
 
     @Override
     public Long calculateCartTotals(Cart cart) throws Exception {
-        return null;
+
+        Long total = 0L;
+
+        for (CartItem cartItem : cart.getItems()) {
+            total += cartItem.getFood().getPrice()*cartItem.getQuantity();
+
+        }
+
+        return total;
     }
 
     @Override
     public Cart findCartById(Long id) throws Exception {
-        return null;
+        Optional<Cart> optionalCart = cartRepository.findById(id);
+        if(optionalCart.isEmpty()){
+            throw new Exception("Cart not found with id: " + id);
+        }
+        return optionalCart.get();
     }
 
     @Override
     public Cart findCartByUserId(Long userId) throws Exception {
-        return null;
+
+        return cartRepository.findByCustomerId(userId);
     }
 
     @Override
     public Cart clearCart(Long userId) throws Exception {
-        return null;
+        Cart cart = findCartByUserId(userId);
+        cart.getItems().clear();
+        return cartRepository.save(cart);
     }
-
 
 }
