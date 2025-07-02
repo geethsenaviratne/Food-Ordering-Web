@@ -30,6 +30,7 @@ public class CartItem {
 
     private Long totalPrice;
 
+
     public Long getId() {
         return id;
     }
