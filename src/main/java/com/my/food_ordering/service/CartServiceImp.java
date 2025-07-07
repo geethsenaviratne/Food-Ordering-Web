@@ -10,6 +10,7 @@ import com.my.food_ordering.request.AddCartItemRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -77,7 +78,9 @@ public class CartServiceImp implements CartService{
     public Cart removeItemFromCart(Long cartItemId, String jwt) throws Exception {
         User user=userService.findUserByJwtToken(jwt);
 
-        Cart cart = cartItemRepository.findByCustomerId(user.getId());
+        List<CartItem> cartItems = cartItemRepository.findByCartCustomerId(user.getId());
+        Cart cart = cartItems.isEmpty() ? null : cartItems.get(0).getCart();
+
 
         Optional<CartItem> cartItemOptional = cartItemRepository.findById(cartItemId);
         if(cartItemOptional.isEmpty()){
